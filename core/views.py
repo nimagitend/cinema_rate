@@ -6,22 +6,19 @@ from django.db.models import F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import LoginForm, RegisterForm
-from .models import Actor, ActorVote, Country, Movie, MovieVote
+from .forms import LoginForm, PersonalActorForm, PersonalMovieForm, RegisterForm
+from .models import Actor, ActorVote, Country, Movie, MovieVote, PersonalActor, PersonalMovie
 
 
 class UserLoginView(LoginView):
     template_name = 'registration/login.html'
     authentication_form = LoginForm
-    redirect_authenticated_user = True
+    redirect_authenticated_user = False
 
 class UserLogoutView(LogoutView):
-    pass
-
+    next_page = 'login'
 
 def landing_redirect_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect('home')
     return redirect('login')
 
 
@@ -46,10 +43,30 @@ def home_view(request: HttpRequest) -> HttpResponse:
     countries = Country.objects.all()
     movie_country = request.GET.get('movie_country', '')
     actor_country = request.GET.get('actor_country', '')
-    show_all_movies = request.GET.get('show_all_movies') == '1'
 
-    movies = Movie.objects.select_related('country').order_by('-vote_count', 'title')
-    actors = Actor.objects.select_related('country').order_by('-vote_count', 'name')
+    movie_form = PersonalMovieForm(prefix='movie')
+    actor_form = PersonalActorForm(prefix='actor')
+
+    if request.method == 'POST':
+        if 'add_movie' in request.POST:
+            movie_form = PersonalMovieForm(request.POST, prefix='movie')
+            if movie_form.is_valid():
+                movie = movie_form.save(commit=False)
+                movie.user = request.user
+                movie.save()
+                messages.success(request, 'Movie saved to your personal list.')
+                return redirect('home')
+        elif 'add_actor' in request.POST:
+            actor_form = PersonalActorForm(request.POST, prefix='actor')
+            if actor_form.is_valid():
+                actor = actor_form.save(commit=False)
+                actor.user = request.user
+                actor.save()
+                messages.success(request, 'Actor saved to your personal list.')
+                return redirect('home')
+
+    movies = PersonalMovie.objects.filter(user=request.user).select_related('country')
+    actors = PersonalActor.objects.filter(user=request.user).select_related('country')
 
     if movie_country:
         movies = movies.filter(country_id=movie_country)
@@ -59,21 +76,16 @@ def home_view(request: HttpRequest) -> HttpResponse:
     top_movie = movies.first()
     top_actor = actors.first()
 
-    movies_ranked = list(movies[1:20])
-    if show_all_movies:
-        movies_ranked = list(movies[1:])
-
-    actors_ranked = list(actors[1:20])
-
     context = {
         'countries': countries,
         'movie_country': movie_country,
         'actor_country': actor_country,
         'top_movie': top_movie,
         'top_actor': top_actor,
-        'movies_ranked': movies_ranked,
-        'actors_ranked': actors_ranked,
-        'show_all_movies': show_all_movies,
+        'movies_ranked': movies,
+        'actors_ranked': actors,
+        'movie_form': movie_form,
+        'actor_form': actor_form,
     }
     return render(request, 'core/home.html', context)
 

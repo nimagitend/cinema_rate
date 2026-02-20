@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.validators import RegexValidator
 
+from .models import PersonalActor, PersonalMovie
 
 User = get_user_model()
 
@@ -38,3 +39,29 @@ class LoginForm(AuthenticationForm):
     def clean_username(self):
         value = self.cleaned_data['username'].strip()
         return value
+
+
+class PersonalMovieForm(forms.ModelForm):
+    class Meta:
+        model = PersonalMovie
+        fields = ['title', 'production_year', 'country', 'poster_url', 'score']
+        widgets = {
+            'title': forms.TextInput(attrs={'placeholder': 'Full movie title'}),
+            'production_year': forms.NumberInput(attrs={'placeholder': 'Production year'}),
+            'country': forms.Select(),
+            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL'}),
+            'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
+        }
+
+
+class PersonalActorForm(forms.ModelForm):
+    class Meta:
+        model = PersonalActor
+        fields = ['full_name', 'production_year', 'country', 'poster_url', 'score']
+        widgets = {
+            'full_name': forms.TextInput(attrs={'placeholder': 'Full actor name'}),
+            'production_year': forms.NumberInput(attrs={'placeholder': 'Production year'}),
+            'country': forms.Select(),
+            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL'}),
+            'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
+        }

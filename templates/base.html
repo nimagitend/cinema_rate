@@ -22,7 +22,10 @@
     <div class="right-area">
         {% if user.is_authenticated %}
             <span class="profile">Hello, {{ user.username }}</span>
-            <a href="{% url 'logout' %}">Logout</a>
+            <form method="post" action="{% url 'logout' %}" class="logout-form">
+                {% csrf_token %}
+                <button type="submit" class="logout-link">Logout</button>
+            </form>
         {% else %}
             <a href="{% url 'login' %}">Login</a>
             <a href="{% url 'register' %}">Sign Up</a>

@@ -102,6 +102,21 @@ body {
     font-weight: 500;
 }
 
+
+.logout-form { margin: 0; }
+
+.logout-link {
+    background: none;
+    border: none;
+    color: #d9e8ff;
+    font-weight: 500;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+
+.logout-link:hover { color: #ffffff; }
+
 .container {
     font-weight: 500;
 }
