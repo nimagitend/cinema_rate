@@ -247,6 +247,30 @@ button:hover,
 }
 .rankings { margin-top: 20px; }
 
+.item-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.delete-form { margin: 0; }
+
+.delete-btn {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+}
 .media-list {
     list-style: none;
     padding: 0;

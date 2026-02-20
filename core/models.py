@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
+from datetime import date
 from .countries import iso_to_flag
 
 class Country(models.Model):
@@ -92,6 +93,9 @@ class PersonalActor(models.Model):
             return self.poster_image.url
         return self.poster_url
 
+    @property
+    def age(self) -> int:
+        return max(0, date.today().year - self.production_year)
     def __str__(self) -> str:
         return f'{self.full_name} ({self.user})'
 

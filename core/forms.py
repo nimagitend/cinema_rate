@@ -99,6 +99,10 @@ class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
     class Meta:
         model = PersonalActor
         fields = ['country', 'poster_image', 'score']
+        labels = {
+            'full_name': forms.TextInput(attrs={'placeholder': 'Full name'}),
+            'production_year': forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}),
+        }
         widgets = {
             'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),

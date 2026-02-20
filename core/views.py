@@ -82,6 +82,16 @@ def home_view(request: HttpRequest) -> HttpResponse:
                     return redirect('home')
             else:
                 messages.error(request, 'Actor list is temporarily unavailable. Please run migrations.')
+        elif 'delete_movie' in request.POST and personal_movie_table_exists:
+            movie = get_object_or_404(PersonalMovie, id=request.POST.get('delete_movie'), user=request.user)
+            movie.delete()
+            messages.success(request, 'Movie removed from your list.')
+            return redirect('home')
+        elif 'delete_actor' in request.POST and personal_actor_table_exists:
+            actor = get_object_or_404(PersonalActor, id=request.POST.get('delete_actor'), user=request.user)
+            actor.delete()
+            messages.success(request, 'Actor removed from your list.')
+            return redirect('home')
 
     try:
         movies = PersonalMovie.objects.none()
