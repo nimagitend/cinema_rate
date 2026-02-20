@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.validators import RegexValidator
+from django.db.utils import OperationalError, ProgrammingError
+from .db_guards import table_has_column
 
 from .models import Country, PersonalActor, PersonalMovie
 
@@ -73,8 +75,10 @@ class PersonalMovieForm(PosterValidationMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['country'].queryset = Country.objects.all()
-
+        if table_has_column(Country._meta.db_table, 'iso_code'):
+            self.fields['country'].queryset = Country.objects.all()
+        else:
+            self.fields['country'].queryset = Country.objects.none()
 
 class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
     country = CountryChoiceField(queryset=Country.objects.none())
@@ -93,4 +97,7 @@ class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['country'].queryset = Country.objects.all()
+        if table_has_column(Country._meta.db_table, 'iso_code'):
+            self.fields['country'].queryset = Country.objects.all()
+        else:
+            self.fields['country'].queryset = Country.objects.none()

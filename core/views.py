@@ -3,11 +3,12 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db import connection
-from django.db.utils import ProgrammingError
+from django.db.utils import OperationalError, ProgrammingError
 from django.db.models import F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
+from .db_guards import table_has_column
 from .forms import LoginForm, PersonalActorForm, PersonalMovieForm, RegisterForm
 from .models import Actor, ActorVote, Country, Movie, MovieVote, PersonalActor, PersonalMovie
 
@@ -42,12 +43,15 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def home_view(request: HttpRequest) -> HttpResponse:
-    countries = Country.objects.all()
+    countries = Country.objects.none()
     movie_country = request.GET.get('movie_country', '')
     actor_country = request.GET.get('actor_country', '')
+    country_schema_ready = table_has_column(Country._meta.db_table, 'iso_code')
 
-    movie_form = PersonalMovieForm(prefix='movie')
-    actor_form = PersonalActorForm(prefix='actor')
+    if country_schema_ready:
+        countries = Country.objects.all()
+    else:
+        messages.error(request, 'Country data is unavailable until database migrations are applied.')
 
     personal_movie_table_exists = PersonalMovie._meta.db_table in connection.introspection.table_names()
     personal_actor_table_exists = PersonalActor._meta.db_table in connection.introspection.table_names()
@@ -84,7 +88,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
             movies = PersonalMovie.objects.filter(user=request.user).select_related('country')
         if personal_actor_table_exists:
             actors = PersonalActor.objects.filter(user=request.user).select_related('country')
-    except ProgrammingError:
+    except (ProgrammingError, OperationalError):
         movies = PersonalMovie.objects.none()
         actors = PersonalActor.objects.none()
         messages.error(request, 'Your personal lists are unavailable until database migrations are applied.')
