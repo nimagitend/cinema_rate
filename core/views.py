@@ -2,6 +2,8 @@ from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
+from django.db import connection
+from django.db.utils import ProgrammingError
 from django.db.models import F
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -47,26 +49,45 @@ def home_view(request: HttpRequest) -> HttpResponse:
     movie_form = PersonalMovieForm(prefix='movie')
     actor_form = PersonalActorForm(prefix='actor')
 
+    personal_movie_table_exists = PersonalMovie._meta.db_table in connection.introspection.table_names()
+    personal_actor_table_exists = PersonalActor._meta.db_table in connection.introspection.table_names()
+
     if request.method == 'POST':
         if 'add_movie' in request.POST:
-            movie_form = PersonalMovieForm(request.POST, prefix='movie')
-            if movie_form.is_valid():
-                movie = movie_form.save(commit=False)
-                movie.user = request.user
-                movie.save()
-                messages.success(request, 'Movie saved to your personal list.')
-                return redirect('home')
+            if personal_movie_table_exists:
+                movie_form = PersonalMovieForm(request.POST, prefix='movie')
+                if movie_form.is_valid():
+                    movie = movie_form.save(commit=False)
+                    movie.user = request.user
+                    movie.save()
+                    messages.success(request, 'Movie saved to your personal list.')
+                    return redirect('home')
+            else:
+                messages.error(request, 'Movie list is temporarily unavailable. Please run migrations.')
         elif 'add_actor' in request.POST:
-            actor_form = PersonalActorForm(request.POST, prefix='actor')
-            if actor_form.is_valid():
-                actor = actor_form.save(commit=False)
-                actor.user = request.user
-                actor.save()
-                messages.success(request, 'Actor saved to your personal list.')
-                return redirect('home')
+            if personal_actor_table_exists:
+                actor_form = PersonalActorForm(request.POST, prefix='actor')
+                if actor_form.is_valid():
+                    actor = actor_form.save(commit=False)
+                    actor.user = request.user
+                    actor.save()
+                    messages.success(request, 'Actor saved to your personal list.')
+                    return redirect('home')
+            else:
+                messages.error(request, 'Actor list is temporarily unavailable. Please run migrations.')
 
-    movies = PersonalMovie.objects.filter(user=request.user).select_related('country')
-    actors = PersonalActor.objects.filter(user=request.user).select_related('country')
+    try:
+        movies = PersonalMovie.objects.none()
+        actors = PersonalActor.objects.none()
+
+        if personal_movie_table_exists:
+            movies = PersonalMovie.objects.filter(user=request.user).select_related('country')
+        if personal_actor_table_exists:
+            actors = PersonalActor.objects.filter(user=request.user).select_related('country')
+    except ProgrammingError:
+        movies = PersonalMovie.objects.none()
+        actors = PersonalActor.objects.none()
+        messages.error(request, 'Your personal lists are unavailable until database migrations are applied.')
 
     if movie_country:
         movies = movies.filter(country_id=movie_country)
