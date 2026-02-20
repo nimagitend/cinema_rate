@@ -24,7 +24,7 @@
                 <img src="{{ top_actor.poster_source }}" alt="{{ top_actor.full_name }} poster" class="poster-thumb">
                 <div>
                     <h3>{{ top_actor.full_name }}</h3>
-                    <p>{{ top_actor.production_year }} • {{ top_actor.country.flag_emoji }} {{ top_actor.country.name }}</p>
+                    <p>{{ top_actor.country.flag_emoji }} {{ top_actor.country.name }}</p>
                     <p class="score">Score: {{ top_actor.score }}/100</p>
                 </div>
             </div>
@@ -35,7 +35,7 @@
 </section>
 
 <section class="entry-grid">
-    <article class="entry-card">
+    <article class="entry-card movie-card">
         <h2>Add Movie</h2>
         <form method="post" enctype="multipart/form-data" class="stack-form">
             {% csrf_token %}
@@ -43,13 +43,6 @@
                 <div class="field-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
-                    {% if field.name == 'country' %}
-                        <datalist id="movie-country-options">
-                            {% for country in field.field.queryset %}
-                                <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
-                            {% endfor %}
-                        </datalist>
-                    {% endif %}
                     {% for error in field.errors %}
                         <small class="error">{{ error }}</small>
                     {% endfor %}
@@ -59,7 +52,7 @@
         </form>
     </article>
 
-    <article class="entry-card">
+    <article class="entry-card actor-card">
         <h2>Add Actor</h2>
         <form method="post" enctype="multipart/form-data" class="stack-form">
             {% csrf_token %}
@@ -67,13 +60,6 @@
                 <div class="field-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
-                    {% if field.name == 'country' %}
-                        <datalist id="actor-country-options">
-                            {% for country in field.field.queryset %}
-                                <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
-                            {% endfor %}
-                        </datalist>
-                    {% endif %}
                     {% for error in field.errors %}
                         <small class="error">{{ error }}</small>
                     {% endfor %}
@@ -89,12 +75,7 @@
         <h3>Movie Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="actor_country" value="{{ actor_country }}">
-            <input type="text" name="movie_country" class="country-select" list="movie-filter-country-options" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off">
-            <datalist id="movie-filter-country-options">
-                {% for country in countries %}
-                    <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
-                {% endfor %}
-            </datalist>
+            <input type="text" name="movie_country" class="country-select" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off">
             <button type="submit">Apply Movie Filter</button>
         </form>
     </article>
@@ -103,12 +84,7 @@
         <h3>Actor Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="movie_country" value="{{ movie_country }}">
-            <input type="text" name="actor_country" class="country-select" list="actor-filter-country-options" placeholder="Type country name" value="{{ actor_country }}" autocomplete="off">
-            <datalist id="actor-filter-country-options">
-                {% for country in countries %}
-                    <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
-                {% endfor %}
-            </datalist>
+            <input type="text" name="actor_country" class="country-select" placeholder="Type country name" value="{{ actor_country }}" autocomplete="off">
             <button type="submit">Apply Actor Filter</button>
         </form>
     </article>
@@ -123,8 +99,7 @@
                     <img src="{{ movie.poster_source }}" alt="{{ movie.title }} poster" class="list-poster">
                     <div>
                         <strong>{{ movie.title }}</strong>
-                        <p>{{ movie.production_year }} • {{ movie.country.flag_emoji }} {{ movie.country.name }}</p>
-                        <p class="score">Score: {{ movie.score }}/100</p>
+                        <p class="media-meta">{{ movie.production_year }}</p>
                     </div>
                 </li>
             {% empty %}
@@ -141,8 +116,7 @@
                     <img src="{{ actor.poster_source }}" alt="{{ actor.full_name }} poster" class="list-poster">
                     <div>
                         <strong>{{ actor.full_name }}</strong>
-                        <p>{{ actor.production_year }} • {{ actor.country.flag_emoji }} {{ actor.country.name }}</p>
-                        <p class="score">Score: {{ actor.score }}/100</p>
+                        <p class="media-meta">{{ top_actor.score }}</p>
                     </div>
                 </li>
             {% empty %}
