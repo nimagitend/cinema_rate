@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="auth-wrapper">
+    <div class="auth-panel">
+        <div class="auth-header">
+            <h1>Create Account</h1>
+            <p>Use a unique English username, a valid email, and a secure password.</p>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="field-group">
+                <label for="id_email">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}<small class="error">{{ form.email.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <div class="field-group">
+                <label for="id_username">Username</label>
+                {{ form.username }}
+                {% if form.username.help_text %}<small class="hint">{{ form.username.help_text }}</small>{% endif %}
+                {% if form.username.errors %}<small class="error">{{ form.username.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <div class="field-group">
+                <label for="id_password1">Password</label>
+                {{ form.password1 }}
+                {% if form.password1.errors %}<small class="error">{{ form.password1.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <div class="field-group">
+                <label for="id_password2">Confirm Password</label>
+                {{ form.password2 }}
+                {% if form.password2.errors %}<small class="error">{{ form.password2.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <button type="submit" class="auth-btn">Register</button>
+        </form>
+
+        <p class="auth-footer">Already registered? <a href="{% url 'login' %}">Login</a>.</p>
+    </div>
+</section>
+{% endblock %}

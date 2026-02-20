@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="hero">
+    <div class="hero-box">
+        <h2>Best Movie</h2>
+        {% if top_movie %}
+            <h3>{{ top_movie.title }}</h3>
+            <p>Country: {{ top_movie.country.name }} | Votes: {{ top_movie.vote_count }}</p>
+            <form method="post" action="{% url 'vote_movie' top_movie.id %}">{% csrf_token %}<button>Vote</button></form>
+        {% else %}
+            <p>No movies available yet.</p>
+        {% endif %}
+    </div>
+    <div class="hero-box">
+        <h2>Best Actor</h2>
+        {% if top_actor %}
+            <h3>{{ top_actor.name }}</h3>
+            <p>Country: {{ top_actor.country.name }} | Votes: {{ top_actor.vote_count }}</p>
+            <form method="post" action="{% url 'vote_actor' top_actor.id %}">{% csrf_token %}<button>Vote</button></form>
+        {% else %}
+            <p>No actors available yet.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section>
+    <h2>Ranking Filters</h2>
+    <form method="get" class="filters">
+        <label>Movie country:
+            <select name="movie_country">
+                <option value="">All Countries</option>
+                {% for country in countries %}
+                    <option value="{{ country.id }}" {% if movie_country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Actor country:
+            <select name="actor_country">
+                <option value="">All Countries</option>
+                {% for country in countries %}
+                    <option value="{{ country.id }}" {% if actor_country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit">Apply Filter</button>
+    </form>
+</section>
+
+<section class="rankings">
+    <div>
+        <h2>Movies (Rank 2 to 20)</h2>
+        <ol>
+            {% for movie in movies_ranked %}
+                <li>{{ movie.title }} - {{ movie.country.name }} ({{ movie.vote_count }} votes)
+                    <form method="post" action="{% url 'vote_movie' movie.id %}">{% csrf_token %}<button>Vote</button></form>
+                </li>
+            {% empty %}
+                <li>No ranked movies found.</li>
+            {% endfor %}
+        </ol>
+        {% if not show_all_movies %}
+            <a class="btn" href="?movie_country={{ movie_country }}&actor_country={{ actor_country }}&show_all_movies=1">Show all movies</a>
+        {% endif %}
+    </div>
+
+    <div>
+        <h2>Actors (Rank 2 to 20)</h2>
+        <ol>
+            {% for actor in actors_ranked %}
+                <li>{{ actor.name }} - {{ actor.country.name }} ({{ actor.vote_count }} votes)
+                    <form method="post" action="{% url 'vote_actor' actor.id %}">{% csrf_token %}<button>Vote</button></form>
+                </li>
+            {% empty %}
+                <li>No ranked actors found.</li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+{% endblock %}

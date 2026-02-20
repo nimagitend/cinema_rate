@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="auth-wrapper">
+    <div class="auth-panel">
+        <div class="auth-header">
+            <h1>Welcome Back</h1>
+            <p>Sign in with your username or email and password.</p>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="field-group">
+                <label for="id_username">Username or Email</label>
+                {{ form.username }}
+                {% if form.username.errors %}<small class="error">{{ form.username.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <div class="field-group">
+                <label for="id_password">Password</label>
+                {{ form.password }}
+                {% if form.password.errors %}<small class="error">{{ form.password.errors|striptags }}</small>{% endif %}
+            </div>
+
+            <button type="submit" class="auth-btn">Login</button>
+        </form>
+
+        <p class="auth-footer">No account? <a href="{% url 'register' %}">Create one here</a>.</p>
+    </div>
+</section>
+{% endblock %}
