@@ -17,18 +17,18 @@
 </div>
 <header class="site-header">
     <div class="brand-area">
-        <a class="brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
+        <a class="brand brand-box" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
     </div>
     <div class="right-area">
         {% if user.is_authenticated %}
-            <span class="profile">Hello, {{ user.username }}</span>
+            <span class="profile profile-box">Hello, {{ user.username }}</span>
             <form method="post" action="{% url 'logout' %}" class="logout-form">
                 {% csrf_token %}
-                <button type="submit" class="logout-link">Logout</button>
+                <button type="submit" class="logout-link logout-box">Logout</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'register' %}">Sign Up</a>
+            <a class="profile-box" href="{% url 'login' %}">Login</a>
+            <a class="profile-box" href="{% url 'register' %}">Sign Up</a>
         {% endif %}
     </div>
 </header>
