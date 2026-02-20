@@ -13,10 +13,16 @@ from .models import Actor, ActorVote, Country, Movie, MovieVote
 class UserLoginView(LoginView):
     template_name = 'registration/login.html'
     authentication_form = LoginForm
-
+    redirect_authenticated_user = True
 
 class UserLogoutView(LogoutView):
     pass
+
+
+def landing_redirect_view(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect('home')
+    return redirect('login')
 
 
 def register_view(request: HttpRequest) -> HttpResponse:

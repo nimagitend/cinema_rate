@@ -4,18 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cinema Rate</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+<div class="bg-motion" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+</div>
 <header class="site-header">
-    <div class="left-area">
-        {% if user.is_authenticated %}
-            <span class="profile">Profile: {{ user.username }}</span>
-            <a href="{% url 'logout' %}">Log out</a>
-        {% endif %}
+    <div class="brand-area">
+        <a class="brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
     </div>
     <div class="right-area">
-        <span>{% now "l, F j, Y" %}</span>
+        {% if user.is_authenticated %}
+            <span class="profile">Hello, {{ user.username }}</span>
+            <a href="{% url 'logout' %}">Logout</a>
+        {% else %}
+            <a href="{% url 'login' %}">Login</a>
+            <a href="{% url 'register' %}">Sign Up</a>
+        {% endif %}
     </div>
 </header>
 
@@ -29,6 +40,10 @@
     {% endif %}
     {% block content %}{% endblock %}
 </main>
+
+<footer class="site-footer">
+    <p>All rights reserved.</p>
+</footer>
 <script src="/static/js/app.js"></script>
 </body>
 </html>

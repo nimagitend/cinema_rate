@@ -4,7 +4,7 @@
     <div class="auth-panel">
         <div class="auth-header">
             <h1>Welcome Back</h1>
-            <p>Sign in with your username or email and password.</p>
+            <p>Login to continue rating top movies and actors.</p>
         </div>
 
         <form method="post" class="auth-form">
@@ -22,9 +22,14 @@
 
             <div class="field-group">
                 <label for="id_password">Password</label>
-                {{ form.password }}
+                <div class="password-input-wrap">
+                    {{ form.password }}
+                    <button type="button" class="password-toggle" data-target="id_password" aria-label="Show or hide password">👁</button>
+                </div>
                 {% if form.password.errors %}<small class="error">{{ form.password.errors|striptags }}</small>{% endif %}
             </div>
+
+            <a class="forgot-password-link" href="{% url 'password_reset' %}">Forgot password?</a>
 
             <button type="submit" class="auth-btn">Login</button>
         </form>

@@ -4,7 +4,7 @@
     <div class="auth-panel">
         <div class="auth-header">
             <h1>Create Account</h1>
-            <p>Use a unique English username, a valid email, and a secure password.</p>
+            <p>Sign up with your email and start voting in seconds.</p>
         </div>
 
         <form method="post" class="auth-form">
@@ -29,17 +29,23 @@
 
             <div class="field-group">
                 <label for="id_password1">Password</label>
-                {{ form.password1 }}
+                <div class="password-input-wrap">
+                    {{ form.password1 }}
+                    <button type="button" class="password-toggle" data-target="id_password1" aria-label="Show or hide password">👁</button>
+                </div>
                 {% if form.password1.errors %}<small class="error">{{ form.password1.errors|striptags }}</small>{% endif %}
             </div>
 
             <div class="field-group">
                 <label for="id_password2">Confirm Password</label>
-                {{ form.password2 }}
+                <div class="password-input-wrap">
+                    {{ form.password2 }}
+                    <button type="button" class="password-toggle" data-target="id_password2" aria-label="Show or hide password">👁</button>
+                </div>
                 {% if form.password2.errors %}<small class="error">{{ form.password2.errors|striptags }}</small>{% endif %}
             </div>
 
-            <button type="submit" class="auth-btn">Register</button>
+            <button type="submit" class="auth-btn">Sign Up</button>
         </form>
 
         <p class="auth-footer">Already registered? <a href="{% url 'login' %}">Login</a>.</p>
