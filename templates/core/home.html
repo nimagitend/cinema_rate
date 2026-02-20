@@ -43,6 +43,13 @@
                 <div class="field-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
+                    {% if field.name == 'country' %}
+                        <datalist id="movie-country-options">
+                            {% for country in field.field.queryset %}
+                                <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
+                            {% endfor %}
+                        </datalist>
+                    {% endif %}
                     {% for error in field.errors %}
                         <small class="error">{{ error }}</small>
                     {% endfor %}
@@ -60,6 +67,13 @@
                 <div class="field-group">
                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                     {{ field }}
+                    {% if field.name == 'country' %}
+                        <datalist id="actor-country-options">
+                            {% for country in field.field.queryset %}
+                                <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
+                            {% endfor %}
+                        </datalist>
+                    {% endif %}
                     {% for error in field.errors %}
                         <small class="error">{{ error }}</small>
                     {% endfor %}
@@ -75,12 +89,12 @@
         <h3>Movie Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="actor_country" value="{{ actor_country }}">
-            <select name="movie_country" class="country-select">
-                <option value="">All Countries</option>
+            <input type="text" name="movie_country" class="country-select" list="movie-filter-country-options" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off">
+            <datalist id="movie-filter-country-options">
                 {% for country in countries %}
-                    <option value="{{ country.id }}" {% if movie_country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.flag_emoji }} {{ country.name }}</option>
+                    <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
                 {% endfor %}
-            </select>
+            </datalist>
             <button type="submit">Apply Movie Filter</button>
         </form>
     </article>
@@ -89,12 +103,12 @@
         <h3>Actor Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="movie_country" value="{{ movie_country }}">
-            <select name="actor_country" class="country-select">
-                <option value="">All Countries</option>
+            <input type="text" name="actor_country" class="country-select" list="actor-filter-country-options" placeholder="Type country name" value="{{ actor_country }}" autocomplete="off">
+            <datalist id="actor-filter-country-options">
                 {% for country in countries %}
-                    <option value="{{ country.id }}" {% if actor_country == country.id|stringformat:'s' %}selected{% endif %}>{{ country.flag_emoji }} {{ country.name }}</option>
+                    <option value="{{ country.name }}">{{ country.flag_emoji }} {{ country.name }}</option>
                 {% endfor %}
-            </select>
+            </datalist>
             <button type="submit">Apply Actor Filter</button>
         </form>
     </article>

@@ -56,6 +56,9 @@ def home_view(request: HttpRequest) -> HttpResponse:
     personal_movie_table_exists = PersonalMovie._meta.db_table in connection.introspection.table_names()
     personal_actor_table_exists = PersonalActor._meta.db_table in connection.introspection.table_names()
 
+    movie_form = PersonalMovieForm(prefix='movie')
+    actor_form = PersonalActorForm(prefix='actor')
+
     if request.method == 'POST':
         if 'add_movie' in request.POST:
             if personal_movie_table_exists:
@@ -94,9 +97,9 @@ def home_view(request: HttpRequest) -> HttpResponse:
         messages.error(request, 'Your personal lists are unavailable until database migrations are applied.')
 
     if movie_country:
-        movies = movies.filter(country_id=movie_country)
+        movies = movies.filter(country__name__iexact=movie_country)
     if actor_country:
-        actors = actors.filter(country_id=actor_country)
+        actors = actors.filter(country__name__iexact=actor_country)
 
     top_movie = movies.first()
     top_actor = actors.first()
