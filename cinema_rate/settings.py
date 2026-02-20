@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,11 +14,20 @@ def _env_bool(name: str, default: bool = False) -> bool:
     return os.getenv(name, str(default)).strip().lower() in {'1', 'true', 'yes', 'on'}
 
 
-DEBUG = _env_bool('DJANGO_DEBUG', True)
+ON_RENDER = os.getenv('RENDER', '').lower() == 'true'
+DEBUG = _env_bool('DJANGO_DEBUG', not ON_RENDER)
+
 raw_allowed_hosts = os.getenv('ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = [host.strip() for host in raw_allowed_hosts.split(',') if host.strip()]
+render_external_host = os.getenv('RENDER_EXTERNAL_HOSTNAME', '').strip()
+if render_external_host and render_external_host not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_external_host)
 if DEBUG and not ALLOWED_HOSTS:
     ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+elif ON_RENDER and not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ['*']
+
+CSRF_TRUSTED_ORIGINS = [f'https://{host}' for host in ALLOWED_HOSTS if host and host != '*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -60,7 +70,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cinema_rate.wsgi.application'
 
-if os.getenv('USE_SQLITE', 'False').lower() == 'true':
+database_url = os.getenv('DATABASE_URL', '').strip()
+if database_url:
+    from urllib.parse import urlparse
+
+    parsed = urlparse(database_url)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': parsed.path.lstrip('/'),
+            'USER': parsed.username,
+            'PASSWORD': parsed.password,
+            'HOST': parsed.hostname,
+            'PORT': parsed.port or 5432,
+        }
+    }
+elif os.getenv('USE_SQLITE', 'False').lower() == 'true':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
