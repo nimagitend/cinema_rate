@@ -4,6 +4,14 @@ from django.db import models
 from datetime import date
 from .countries import iso_to_flag
 
+def _delete_file_from_storage(file_field) -> None:
+    if not file_field:
+        return
+    storage = file_field.storage
+    file_name = file_field.name
+    if file_name and storage.exists(file_name):
+        storage.delete(file_name)
+
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
     iso_code = models.CharField(max_length=2, unique=True)
@@ -65,7 +73,9 @@ class PersonalMovie(models.Model):
         if self.poster_image:
             return self.poster_image.url
         return self.poster_url
-
+    def delete(self, using=None, keep_parents=False):
+        _delete_file_from_storage(self.poster_image)
+        return super().delete(using=using, keep_parents=keep_parents)
     def __str__(self) -> str:
         return f'{self.title} ({self.user})'
 
@@ -96,6 +106,9 @@ class PersonalActor(models.Model):
     @property
     def age(self) -> int:
         return max(0, date.today().year - self.production_year)
+    def delete(self, using=None, keep_parents=False):
+        _delete_file_from_storage(self.poster_image)
+        return super().delete(using=using, keep_parents=keep_parents)
     def __str__(self) -> str:
         return f'{self.full_name} ({self.user})'
 

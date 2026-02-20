@@ -50,6 +50,11 @@ class RegisterForm(UserCreationForm):
         self.fields['password1'].widget.attrs.update({'placeholder': 'Create a password', 'autocomplete': 'new-password'})
         self.fields['password2'].widget.attrs.update({'placeholder': 'Confirm your password', 'autocomplete': 'new-password'})
 
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(label='Username or Email')
@@ -93,26 +98,17 @@ class PersonalMovieForm(PosterValidationMixin, forms.ModelForm):
 
 
 class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
-    first_name = forms.CharField(max_length=120, widget=forms.TextInput(attrs={'placeholder': 'First name'}))
-    last_name = forms.CharField(max_length=120, widget=forms.TextInput(attrs={'placeholder': 'Last name'}))
+    full_name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'placeholder': 'Full name'}))
+    born = forms.IntegerField(min_value=1900, widget=forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}))
     country = forms.CharField(widget=forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}))
     class Meta:
         model = PersonalActor
-        fields = ['country', 'poster_image', 'score']
-        labels = {
-            'full_name': forms.TextInput(attrs={'placeholder': 'Full name'}),
-            'production_year': forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}),
-        }
+        fields = ['full_name', 'born', 'country', 'poster_image', 'score']
+        labels = {'born': 'Born'}
         widgets = {
             'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['first_name'].label = 'First name'
-        self.fields['last_name'].label = 'Last name'
-        self.order_fields(['first_name', 'last_name', 'country', 'poster_image', 'score'])
 
     def clean_country(self):
         value = self.data.get(self.add_prefix('country'), '')
@@ -120,10 +116,8 @@ class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
 
     def save(self, commit=True):
         actor = super().save(commit=False)
-        first_name = self.cleaned_data.get('first_name', '').strip()
-        last_name = self.cleaned_data.get('last_name', '').strip()
-        actor.full_name = f'{first_name} {last_name}'.strip()
-        actor.production_year = 0
+        actor.full_name = self.cleaned_data.get('full_name', '').strip()
+        actor.production_year = self.cleaned_data.get('born')
         if commit:
             actor.save()
         return actor

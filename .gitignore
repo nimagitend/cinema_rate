@@ -17,3 +17,6 @@ staticfiles/
 # IDE
 .vscode/
 .idea/
+
+# Media
+media/
