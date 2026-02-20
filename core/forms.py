@@ -3,9 +3,14 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.validators import RegexValidator
 
-from .models import PersonalActor, PersonalMovie
+from .models import Country, PersonalActor, PersonalMovie
 
 User = get_user_model()
+
+
+class CountryChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj: Country) -> str:
+        return f'{obj.flag_emoji} {obj.name}'
 
 
 class RegisterForm(UserCreationForm):
@@ -41,27 +46,51 @@ class LoginForm(AuthenticationForm):
         return value
 
 
-class PersonalMovieForm(forms.ModelForm):
+class PosterValidationMixin:
+    def clean(self):
+        cleaned_data = super().clean()
+        poster_url = cleaned_data.get('poster_url')
+        poster_image = cleaned_data.get('poster_image')
+        if not poster_url and not poster_image:
+            raise forms.ValidationError('Please provide a poster URL or upload a JPG/PNG image.')
+        return cleaned_data
+
+
+class PersonalMovieForm(PosterValidationMixin, forms.ModelForm):
+    country = CountryChoiceField(queryset=Country.objects.none())
+
     class Meta:
         model = PersonalMovie
-        fields = ['title', 'production_year', 'country', 'poster_url', 'score']
+        fields = ['title', 'production_year', 'country', 'poster_url', 'poster_image', 'score']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Full movie title'}),
             'production_year': forms.NumberInput(attrs={'placeholder': 'Production year'}),
-            'country': forms.Select(),
-            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL'}),
+            'country': forms.Select(attrs={'class': 'country-select'}),
+            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL (optional)'}),
+            'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['country'].queryset = Country.objects.all()
 
-class PersonalActorForm(forms.ModelForm):
+
+class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
+    country = CountryChoiceField(queryset=Country.objects.none())
+
     class Meta:
         model = PersonalActor
-        fields = ['full_name', 'production_year', 'country', 'poster_url', 'score']
+        fields = ['full_name', 'production_year', 'country', 'poster_url', 'poster_image', 'score']
         widgets = {
             'full_name': forms.TextInput(attrs={'placeholder': 'Full actor name'}),
             'production_year': forms.NumberInput(attrs={'placeholder': 'Production year'}),
-            'country': forms.Select(),
-            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL'}),
+            'country': forms.Select(attrs={'class': 'country-select'}),
+            'poster_url': forms.URLInput(attrs={'placeholder': 'Poster image URL (optional)'}),
+            'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['country'].queryset = Country.objects.all()

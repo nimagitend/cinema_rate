@@ -55,7 +55,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         if 'add_movie' in request.POST:
             if personal_movie_table_exists:
-                movie_form = PersonalMovieForm(request.POST, prefix='movie')
+                movie_form = PersonalMovieForm(request.POST, request.FILES, prefix='movie')
                 if movie_form.is_valid():
                     movie = movie_form.save(commit=False)
                     movie.user = request.user
@@ -66,7 +66,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
                 messages.error(request, 'Movie list is temporarily unavailable. Please run migrations.')
         elif 'add_actor' in request.POST:
             if personal_actor_table_exists:
-                actor_form = PersonalActorForm(request.POST, prefix='actor')
+                actor_form = PersonalActorForm(request.POST, request.FILES, prefix='actor')
                 if actor_form.is_valid():
                     actor = actor_form.save(commit=False)
                     actor.user = request.user

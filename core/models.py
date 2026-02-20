@@ -1,9 +1,11 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from .countries import iso_to_flag
 
 class Country(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    iso_code = models.CharField(max_length=2, unique=True)
 
     class Meta:
         ordering = ['name']
@@ -19,6 +21,10 @@ class Actor(models.Model):
 
     class Meta:
         ordering = ['-vote_count', 'name']
+
+    @property
+    def flag_emoji(self) -> str:
+        return iso_to_flag(self.iso_code)
 
     def __str__(self) -> str:
         return self.name
@@ -41,7 +47,8 @@ class PersonalMovie(models.Model):
     title = models.CharField(max_length=200)
     country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='personal_movies')
     production_year = models.PositiveIntegerField()
-    poster_url = models.URLField(max_length=500)
+    poster_url = models.URLField(max_length=500, blank=True, default='')
+    poster_image = models.FileField(upload_to='posters/movies/', blank=True, null=True, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'])])
     score = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -52,6 +59,12 @@ class PersonalMovie(models.Model):
     class Meta:
         ordering = ['-score', '-created_at', 'title']
 
+    @property
+    def poster_source(self) -> str:
+        if self.poster_image:
+            return self.poster_image.url
+        return self.poster_url
+
     def __str__(self) -> str:
         return f'{self.title} ({self.user})'
 
@@ -61,7 +74,8 @@ class PersonalActor(models.Model):
     full_name = models.CharField(max_length=200)
     country = models.ForeignKey(Country, on_delete=models.PROTECT, related_name='personal_actors')
     production_year = models.PositiveIntegerField()
-    poster_url = models.URLField(max_length=500)
+    poster_url = models.URLField(max_length=500, blank=True, default='')
+    poster_image = models.FileField(upload_to='posters/actors/', blank=True, null=True, validators=[FileExtensionValidator(['png', 'jpg', 'jpeg'])])
     score = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -71,6 +85,12 @@ class PersonalActor(models.Model):
 
     class Meta:
         ordering = ['-score', '-created_at', 'full_name']
+
+    @property
+    def poster_source(self) -> str:
+        if self.poster_image:
+            return self.poster_image.url
+        return self.poster_url
 
     def __str__(self) -> str:
         return f'{self.full_name} ({self.user})'

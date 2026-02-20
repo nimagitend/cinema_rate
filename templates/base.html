@@ -20,13 +20,13 @@
         <a class="brand brand-box" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
     </div>
     <div class="right-area">
-        {% if user.is_authenticated %}
+        {% if user.is_authenticated and request.resolver_match.url_name == 'home' %}
             <span class="profile profile-box">Hello, {{ user.username }}</span>
             <form method="post" action="{% url 'logout' %}" class="logout-form">
                 {% csrf_token %}
                 <button type="submit" class="logout-link logout-box">Logout</button>
             </form>
-        {% else %}
+        {% elif not user.is_authenticated %}
             <a class="profile-box" href="{% url 'login' %}">Login</a>
             <a class="profile-box" href="{% url 'register' %}">Sign Up</a>
         {% endif %}
@@ -45,7 +45,7 @@
 </main>
 
 <footer class="site-footer">
-    <p>All rights reserved.</p>
+    <p>© 2026 Cinema Rate. All rights reserved.</p>
 </footer>
 <script src="/static/js/app.js"></script>
 </body>

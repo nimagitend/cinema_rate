@@ -12,4 +12,35 @@ document.addEventListener('DOMContentLoaded', () => {
             toggle.textContent = isPassword ? '🙈' : '👁';
         });
     });
+
+    const countrySelects = document.querySelectorAll('select.country-select');
+    countrySelects.forEach((select) => {
+        const searchInput = document.createElement('input');
+        searchInput.type = 'search';
+        searchInput.placeholder = 'Search country...';
+        searchInput.className = 'country-search';
+        select.parentNode.insertBefore(searchInput, select);
+
+        const allOptions = Array.from(select.options).map((option) => ({
+            value: option.value,
+            text: option.text,
+            selected: option.selected,
+        }));
+
+        searchInput.addEventListener('input', () => {
+            const keyword = searchInput.value.trim().toLowerCase();
+            const currentValue = select.value;
+            select.innerHTML = '';
+
+            allOptions
+                .filter((option) => option.text.toLowerCase().includes(keyword) || option.value === '')
+                .forEach((option) => {
+                    const node = document.createElement('option');
+                    node.value = option.value;
+                    node.textContent = option.text;
+                    node.selected = option.value === currentValue;
+                    select.appendChild(node);
+                });
+        });
+    });
 });
