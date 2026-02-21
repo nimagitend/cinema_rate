@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db import connection
@@ -32,10 +31,12 @@ def register_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Your account has been created successfully.')
-            return redirect('home')
+            user = form.save(commit=False)
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
+            messages.success(request, 'Your account has been created successfully. Please log in.')
+            return redirect('login')
     else:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
@@ -43,6 +44,12 @@ def register_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def home_view(request: HttpRequest) -> HttpResponse:
+    def _table_exists(table_name: str) -> bool:
+        try:
+            return table_name in connection.introspection.table_names()
+        except (ProgrammingError, OperationalError):
+            return False
+
     countries = Country.objects.none()
     movie_country = request.GET.get('movie_country', '')
     actor_country = request.GET.get('actor_country', '')
@@ -53,8 +60,8 @@ def home_view(request: HttpRequest) -> HttpResponse:
     else:
         messages.error(request, 'Country data is unavailable until database migrations are applied.')
 
-    personal_movie_table_exists = PersonalMovie._meta.db_table in connection.introspection.table_names()
-    personal_actor_table_exists = PersonalActor._meta.db_table in connection.introspection.table_names()
+    personal_movie_table_exists = _table_exists(PersonalMovie._meta.db_table)
+    personal_actor_table_exists = _table_exists(PersonalActor._meta.db_table)
 
     movie_form = PersonalMovieForm(prefix='movie')
     actor_form = PersonalActorForm(prefix='actor')
@@ -93,26 +100,30 @@ def home_view(request: HttpRequest) -> HttpResponse:
             messages.success(request, 'Actor removed from your list.')
             return redirect('home')
 
+    movies = []
+    actors = []
+
     try:
-        movies = PersonalMovie.objects.none()
-        actors = PersonalActor.objects.none()
 
         if personal_movie_table_exists:
-            movies = PersonalMovie.objects.filter(user=request.user).select_related('country')
+            movie_queryset = PersonalMovie.objects.filter(user=request.user).select_related('country')
+            if movie_country:
+                movie_queryset = movie_queryset.filter(country__name__iexact=movie_country)
+            movies = list(movie_queryset)
+        
         if personal_actor_table_exists:
-            actors = PersonalActor.objects.filter(user=request.user).select_related('country')
+            actor_queryset = PersonalActor.objects.filter(user=request.user).select_related('country')
+            if actor_country:
+                actor_queryset = actor_queryset.filter(country__name__iexact=actor_country)
+            actors = list(actor_queryset)
+
     except (ProgrammingError, OperationalError):
-        movies = PersonalMovie.objects.none()
-        actors = PersonalActor.objects.none()
+        movies = []
+        actors = []
         messages.error(request, 'Your personal lists are unavailable until database migrations are applied.')
 
-    if movie_country:
-        movies = movies.filter(country__name__iexact=movie_country)
-    if actor_country:
-        actors = actors.filter(country__name__iexact=actor_country)
-
-    top_movie = movies.first()
-    top_actor = actors.first()
+    top_movie = movies[0] if movies else None
+    top_actor = actors[0] if actors else None
 
     context = {
         'countries': countries,
