@@ -147,14 +147,14 @@ def home_view(request: HttpRequest) -> HttpResponse:
     personal_actor_table_exists = _table_exists(PersonalActor._meta.db_table)
 
     movie_form = PersonalMovieForm(prefix='movie')
+    actor_form = PersonalActorForm(prefix='actor')
+
+    profile = _get_or_create_profile(request.user)
     profile_table_exists = profile is not None
     avatar_form = ProfileAvatarForm(instance=profile) if profile_table_exists else ProfileAvatarForm()
 
     if not profile_table_exists:
         messages.warning(request, 'Profile photo is unavailable until database migrations are applied.')
-
-    profile = _get_or_create_profile(request.user)
-    avatar_form = ProfileAvatarForm(instance=profile)
 
     if request.method == 'POST':
         if 'upload_avatar' in request.POST:
@@ -179,7 +179,7 @@ def home_view(request: HttpRequest) -> HttpResponse:
                 messages.info(request, 'No profile photo to delete.')
             else:
                 messages.error(request, 'Profile photo is temporarily unavailable. Please run migrations.')
-
+        elif 'add_movie' in request.POST:
             if personal_movie_table_exists:
                 movie_form = PersonalMovieForm(request.POST, request.FILES, prefix='movie')
                 if movie_form.is_valid():
