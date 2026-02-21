@@ -129,3 +129,19 @@ class ActorVote(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=['user', 'actor'], name='unique_actor_vote')]
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.FileField(
+        upload_to='avatars/',
+        blank=True,
+        null=True,
+        validators=[FileExtensionValidator(['png', 'jpg', 'jpeg', 'webp'])],
+    )
+
+    def delete(self, using=None, keep_parents=False):
+        _delete_file_from_storage(self.avatar)
+        return super().delete(using=using, keep_parents=keep_parents)
+
+    def __str__(self) -> str:
+        return f"Profile<{self.user}>"    

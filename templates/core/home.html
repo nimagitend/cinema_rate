@@ -1,5 +1,25 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load static %}
+<section class="hero">
+    <article class="hero-box profile-hero">
+        <h2>Hello, {{ user.username }}</h2>
+        <div class="profile-quick">
+            <img src="{% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" alt="Profile avatar" class="avatar-lg">
+            <div>
+                <p class="media-meta">Manage your profile photo right here.</p>
+                <form method="post" enctype="multipart/form-data" class="inline-form">
+                    {% csrf_token %}
+                    {{ avatar_form.avatar }}
+                    <button type="submit" name="upload_avatar">Upload Photo</button>
+                    <button type="submit" name="delete_avatar" class="delete-btn">Delete Photo</button>
+                </form>
+                <a href="{% url 'profile' %}" class="btn">Edit name, email, password</a>
+            </div>
+        </div>
+    </article>
+</section>
+
 <section class="hero">
     <article class="hero-box">
         <h2>Best Movie</h2>

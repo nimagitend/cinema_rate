@@ -14,6 +14,7 @@ from .views import (
     home_view,
     landing_redirect_view,
     register_view,
+    profile_view,
     vote_actor_view,
     vote_movie_view,
 )
@@ -21,6 +22,7 @@ from .views import (
 urlpatterns = [
     path('', landing_redirect_view, name='landing'),
     path('home/', home_view, name='home'),
+    path('profile/', profile_view, name='profile'),
     path('register/', register_view, name='register'),
     path('login/', UserLoginView.as_view(), name='login'),
     path('logout/', UserLogoutView.as_view(), name='logout'),

@@ -1,22 +1,41 @@
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
 from django.db import connection
-from django.db.utils import OperationalError, ProgrammingError
 from django.db.models import F
+from django.db.utils import OperationalError, ProgrammingError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .db_guards import table_has_column
-from .forms import LoginForm, PersonalActorForm, PersonalMovieForm, RegisterForm
-from .models import Actor, ActorVote, Country, Movie, MovieVote, PersonalActor, PersonalMovie
+from .forms import (
+    LoginForm,
+    PersonalActorForm,
+    PersonalMovieForm,
+    ProfileAvatarForm,
+    ProfileInfoForm,
+    ProfilePasswordForm,
+    RegisterForm,
+)
+from .models import Actor, ActorVote, Country, Movie, MovieVote, PersonalActor, PersonalMovie, UserProfile
+
+
+def _get_or_create_profile(user):
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    return profile
 
 
 class UserLoginView(LoginView):
     template_name = 'registration/login.html'
     authentication_form = LoginForm
     redirect_authenticated_user = False
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        self.request.session['auth_login_timestamp'] = timezone.now().isoformat()
+        return response
 
 class UserLogoutView(LogoutView):
     next_page = 'login'
@@ -26,8 +45,6 @@ def landing_redirect_view(request: HttpRequest) -> HttpResponse:
 
 
 def register_view(request: HttpRequest) -> HttpResponse:
-    if request.user.is_authenticated:
-        return redirect('home')
 
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -42,6 +59,54 @@ def register_view(request: HttpRequest) -> HttpResponse:
         form = RegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
+@login_required
+def profile_view(request: HttpRequest) -> HttpResponse:
+    profile = _get_or_create_profile(request.user)
+
+    info_form = ProfileInfoForm(instance=request.user)
+    avatar_form = ProfileAvatarForm(instance=profile)
+    password_form = ProfilePasswordForm(user=request.user)
+
+    if request.method == 'POST':
+        if 'save_profile_info' in request.POST:
+            info_form = ProfileInfoForm(request.POST, instance=request.user)
+            if info_form.is_valid():
+                info_form.save()
+                messages.success(request, 'Profile information updated.')
+                return redirect('profile')
+        elif 'change_password' in request.POST:
+            password_form = ProfilePasswordForm(user=request.user, data=request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                request.session['auth_login_timestamp'] = timezone.now().isoformat()
+                messages.success(request, 'Password updated successfully.')
+                return redirect('profile')
+        elif 'upload_avatar' in request.POST:
+            avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
+            if avatar_form.is_valid():
+                if profile.avatar:
+                    profile.avatar.delete(save=False)
+                avatar_form.save()
+                messages.success(request, 'Profile photo updated.')
+                return redirect('profile')
+        elif 'delete_avatar' in request.POST:
+            if profile.avatar:
+                profile.avatar.delete(save=False)
+                profile.avatar = None
+                profile.save(update_fields=['avatar'])
+                messages.success(request, 'Profile photo removed.')
+            else:
+                messages.info(request, 'No profile photo to delete.')
+            return redirect('profile')
+
+    context = {
+        'profile': profile,
+        'info_form': info_form,
+        'avatar_form': avatar_form,
+        'password_form': password_form,
+    }
+    return render(request, 'core/profile.html', context)
 
 @login_required
 def home_view(request: HttpRequest) -> HttpResponse:
@@ -66,9 +131,29 @@ def home_view(request: HttpRequest) -> HttpResponse:
 
     movie_form = PersonalMovieForm(prefix='movie')
     actor_form = PersonalActorForm(prefix='actor')
+    profile = _get_or_create_profile(request.user)
+    avatar_form = ProfileAvatarForm(instance=profile)
 
     if request.method == 'POST':
-        if 'add_movie' in request.POST:
+        if 'upload_avatar' in request.POST:
+            avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
+            if avatar_form.is_valid():
+                if profile.avatar:
+                    profile.avatar.delete(save=False)
+                avatar_form.save()
+                messages.success(request, 'Profile photo updated.')
+                return redirect('home')
+        elif 'delete_avatar' in request.POST:
+            if profile.avatar:
+                profile.avatar.delete(save=False)
+                profile.avatar = None
+                profile.save(update_fields=['avatar'])
+                messages.success(request, 'Profile photo removed.')
+            else:
+                messages.info(request, 'No profile photo to delete.')
+            return redirect('home')
+        elif 'add_movie' in request.POST:
+
             if personal_movie_table_exists:
                 movie_form = PersonalMovieForm(request.POST, request.FILES, prefix='movie')
                 if movie_form.is_valid():
@@ -136,6 +221,8 @@ def home_view(request: HttpRequest) -> HttpResponse:
         'actors_ranked': actors,
         'movie_form': movie_form,
         'actor_form': actor_form,
+        'profile': profile,
+        'avatar_form': avatar_form,
     }
     return render(request, 'core/home.html', context)
 

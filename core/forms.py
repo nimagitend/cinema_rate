@@ -1,13 +1,13 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.core.validators import RegexValidator
 
 import string
 from datetime import date
 from decimal import Decimal
 
-from .models import Country, PersonalActor, PersonalMovie
+from .models import Country, PersonalActor, PersonalMovie, UserProfile
 
 User = get_user_model()
 
@@ -70,6 +70,33 @@ class LoginForm(AuthenticationForm):
     def clean_username(self):
         value = self.cleaned_data['username'].strip()
         return value
+
+class ProfileInfoForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('first_name', 'email')
+        widgets = {
+            'first_name': forms.TextInput(attrs={'placeholder': 'Your name'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Your email', 'autocomplete': 'email'}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data['email'].strip().lower()
+        if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError('This email is already registered.')
+        return email
+
+
+class ProfileAvatarForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ('avatar',)
+        widgets = {
+            'avatar': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg,.webp'})
+        }
+
+class ProfilePasswordForm(PasswordChangeForm):
+    pass
 
 
 class PersonalMovieForm(forms.ModelForm):

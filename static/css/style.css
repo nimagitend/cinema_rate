@@ -27,6 +27,17 @@ body {
     position: relative;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    inset: -20% -10%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 65%);
+    mix-blend-mode: soft-light;
+    animation: cinemaDrift 22s linear infinite;
+    z-index: -2;
+}
+
 .bg-motion {
     position: fixed;
     inset: 0;
@@ -457,4 +468,38 @@ button:hover,
     .auth-panel {
         padding: 20px 16px;
     }
+}
+
+.profile-quick {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.avatar-lg {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #c4d7f8;
+    box-shadow: 0 8px 16px rgba(18, 57, 107, 0.16);
+}
+
+.inline-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.profile-hero {
+    grid-column: 1 / -1;
+}
+
+@keyframes cinemaDrift {
+    0% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(3%, -2%, 0) scale(1.03); }
+    100% { transform: translate3d(0, 0, 0) scale(1); }
 }

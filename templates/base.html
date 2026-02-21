@@ -25,8 +25,8 @@
         <a class="brand brand-box" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
     </div>
     <div class="right-area">
-        {% if user.is_authenticated and request.resolver_match.url_name == 'home' %}
-            <span class="profile profile-box">Hello, {{ user.username }}</span>
+        {% if user.is_authenticated %}
+            <a class="profile profile-box" href="{% url 'profile' %}">Hello, {{ user.username }}</a>
             {% if user.is_staff %}
                 <a class="profile-box" href="{% url 'admin:index' %}">Management</a>
             {% endif %}
@@ -34,7 +34,7 @@
                 {% csrf_token %}
                 <button type="submit" class="logout-link logout-box">Logout</button>
             </form>
-        {% elif not user.is_authenticated %}
+        {% else %}
             <a class="profile-box" href="{% url 'login' %}">Login</a>
             <a class="profile-box" href="{% url 'register' %}">Sign Up</a>
         {% endif %}
