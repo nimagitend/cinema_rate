@@ -9,7 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const isPassword = input.type === 'password';
             input.type = isPassword ? 'text' : 'password';
-            toggle.textContent = isPassword ? '🙈' : '👁';
+            toggle.innerHTML = isPassword
+                ? '<i class="fa-solid fa-eye-slash"></i>'
+                : '<i class="fa-solid fa-eye"></i>';
         });
     });
 

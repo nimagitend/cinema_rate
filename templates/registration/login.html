@@ -24,7 +24,9 @@
                 <label for="id_password">Password</label>
                 <div class="password-input-wrap">
                     {{ form.password }}
-                    <button type="button" class="password-toggle" data-target="id_password" aria-label="Show or hide password">👁</button>
+                    <button type="button" class="password-toggle" data-target="id_password" aria-label="Show or hide password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
                 {% if form.password.errors %}<small class="error">{{ form.password.errors|striptags }}</small>{% endif %}
             </div>

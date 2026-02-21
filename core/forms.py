@@ -3,8 +3,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.core.validators import RegexValidator
 
-from .models import Country, PersonalActor, PersonalMovie
 import string
+from datetime import date
+from decimal import Decimal
+
+from .models import Country, PersonalActor, PersonalMovie
 
 User = get_user_model()
 
@@ -69,17 +72,8 @@ class LoginForm(AuthenticationForm):
         return value
 
 
-class PosterValidationMixin:
-    def clean(self):
-        cleaned_data = super().clean()
-        poster_image = cleaned_data.get('poster_image')
-        if not poster_image:
-            raise forms.ValidationError('Please upload a JPG/PNG image.')
-        return cleaned_data
-
-
-class PersonalMovieForm(PosterValidationMixin, forms.ModelForm):
-    country = forms.CharField()
+class PersonalMovieForm(forms.ModelForm):
+    country = forms.CharField(required=False)
 
     class Meta:
         model = PersonalMovie
@@ -92,15 +86,29 @@ class PersonalMovieForm(PosterValidationMixin, forms.ModelForm):
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['title', 'production_year', 'poster_image', 'score']:
+            self.fields[field_name].required = False
+
+    def clean_title(self):
+        return self.cleaned_data.get('title') or 'Untitled movie'
+
+    def clean_production_year(self):
+        return self.cleaned_data.get('production_year') or date.today().year
+
+    def clean_score(self):
+        return self.cleaned_data.get('score') or Decimal('0')
+
     def clean_country(self):
         value = self.data.get(self.add_prefix('country'), '')
         return _resolve_or_create_country(value)
 
 
-class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
-    full_name = forms.CharField(max_length=200, widget=forms.TextInput(attrs={'placeholder': 'Full name'}))
-    born = forms.IntegerField(min_value=1900, widget=forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}))
-    country = forms.CharField(widget=forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}))
+class PersonalActorForm(forms.ModelForm):
+    full_name = forms.CharField(max_length=200, required=False, widget=forms.TextInput(attrs={'placeholder': 'Full name'}))
+    born = forms.IntegerField(min_value=1900, required=False, widget=forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}))
+    country = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}))
     class Meta:
         model = PersonalActor
         fields = ['full_name', 'born', 'country', 'poster_image', 'score']
@@ -109,6 +117,20 @@ class PersonalActorForm(PosterValidationMixin, forms.ModelForm):
             'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
             'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ['poster_image', 'score']:
+            self.fields[field_name].required = False
+
+    def clean_full_name(self):
+        return self.cleaned_data.get('full_name') or 'Unknown actor'
+
+    def clean_born(self):
+        return self.cleaned_data.get('born') or date.today().year
+
+    def clean_score(self):
+        return self.cleaned_data.get('score') or Decimal('0')
 
     def clean_country(self):
         value = self.data.get(self.add_prefix('country'), '')
