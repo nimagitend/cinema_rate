@@ -23,8 +23,21 @@ from .models import Actor, ActorVote, Country, Movie, MovieVote, PersonalActor, 
 
 
 def _get_or_create_profile(user):
-    profile, _ = UserProfile.objects.get_or_create(user=user)
-    return profile
+    if not _table_exists(UserProfile._meta.db_table):
+        return None
+
+    try:
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        return profile
+    except (ProgrammingError, OperationalError):
+        return None
+
+
+def _table_exists(table_name: str) -> bool:
+    try:
+        return table_name in connection.introspection.table_names()
+    except (ProgrammingError, OperationalError):
+        return False
 
 
 class UserLoginView(LoginView):
@@ -62,10 +75,14 @@ def register_view(request: HttpRequest) -> HttpResponse:
 @login_required
 def profile_view(request: HttpRequest) -> HttpResponse:
     profile = _get_or_create_profile(request.user)
+    profile_table_exists = profile is not None
 
     info_form = ProfileInfoForm(instance=request.user)
-    avatar_form = ProfileAvatarForm(instance=profile)
+    avatar_form = ProfileAvatarForm(instance=profile) if profile_table_exists else ProfileAvatarForm()
     password_form = ProfilePasswordForm(user=request.user)
+
+    if not profile_table_exists:
+        messages.warning(request, 'Profile photo is unavailable until database migrations are applied.')
 
     if request.method == 'POST':
         if 'save_profile_info' in request.POST:
@@ -83,22 +100,27 @@ def profile_view(request: HttpRequest) -> HttpResponse:
                 messages.success(request, 'Password updated successfully.')
                 return redirect('profile')
         elif 'upload_avatar' in request.POST:
-            avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
-            if avatar_form.is_valid():
-                if profile.avatar:
-                    profile.avatar.delete(save=False)
-                avatar_form.save()
-                messages.success(request, 'Profile photo updated.')
-                return redirect('profile')
+            if profile_table_exists:
+                avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
+                if avatar_form.is_valid():
+                    if profile.avatar:
+                        profile.avatar.delete(save=False)
+                    avatar_form.save()
+                    messages.success(request, 'Profile photo updated.')
+                    return redirect('profile')
+            else:
+                messages.error(request, 'Profile photo is temporarily unavailable. Please run migrations.')
+
         elif 'delete_avatar' in request.POST:
-            if profile.avatar:
+            if profile_table_exists and profile.avatar:
                 profile.avatar.delete(save=False)
                 profile.avatar = None
                 profile.save(update_fields=['avatar'])
                 messages.success(request, 'Profile photo removed.')
-            else:
+            elif profile_table_exists:
                 messages.info(request, 'No profile photo to delete.')
-            return redirect('profile')
+            else:
+                messages.error(request, 'Profile photo is temporarily unavailable. Please run migrations.')
 
     context = {
         'profile': profile,
@@ -110,11 +132,6 @@ def profile_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 def home_view(request: HttpRequest) -> HttpResponse:
-    def _table_exists(table_name: str) -> bool:
-        try:
-            return table_name in connection.introspection.table_names()
-        except (ProgrammingError, OperationalError):
-            return False
 
     countries = Country.objects.none()
     movie_country = request.GET.get('movie_country', '')
@@ -130,29 +147,38 @@ def home_view(request: HttpRequest) -> HttpResponse:
     personal_actor_table_exists = _table_exists(PersonalActor._meta.db_table)
 
     movie_form = PersonalMovieForm(prefix='movie')
-    actor_form = PersonalActorForm(prefix='actor')
+    profile_table_exists = profile is not None
+    avatar_form = ProfileAvatarForm(instance=profile) if profile_table_exists else ProfileAvatarForm()
+
+    if not profile_table_exists:
+        messages.warning(request, 'Profile photo is unavailable until database migrations are applied.')
+
     profile = _get_or_create_profile(request.user)
     avatar_form = ProfileAvatarForm(instance=profile)
 
     if request.method == 'POST':
         if 'upload_avatar' in request.POST:
-            avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
-            if avatar_form.is_valid():
-                if profile.avatar:
-                    profile.avatar.delete(save=False)
-                avatar_form.save()
-                messages.success(request, 'Profile photo updated.')
-                return redirect('home')
+            if profile_table_exists:
+                avatar_form = ProfileAvatarForm(request.POST, request.FILES, instance=profile)
+                if avatar_form.is_valid():
+                    if profile.avatar:
+                        profile.avatar.delete(save=False)
+                    avatar_form.save()
+                    messages.success(request, 'Profile photo updated.')
+                    return redirect('home')
+            else:
+                messages.error(request, 'Profile photo is temporarily unavailable. Please run migrations.')
+
         elif 'delete_avatar' in request.POST:
-            if profile.avatar:
+            if profile_table_exists and profile.avatar:
                 profile.avatar.delete(save=False)
                 profile.avatar = None
                 profile.save(update_fields=['avatar'])
                 messages.success(request, 'Profile photo removed.')
-            else:
+            elif profile_table_exists:
                 messages.info(request, 'No profile photo to delete.')
-            return redirect('home')
-        elif 'add_movie' in request.POST:
+            else:
+                messages.error(request, 'Profile photo is temporarily unavailable. Please run migrations.')
 
             if personal_movie_table_exists:
                 movie_form = PersonalMovieForm(request.POST, request.FILES, prefix='movie')
