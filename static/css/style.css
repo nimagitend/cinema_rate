@@ -139,6 +139,33 @@ body::before {
 
 .logout-link:hover { color: #ffffff; }
 
+.profile-pill {
+    border: 1px solid rgba(216, 233, 255, 0.55);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 6px 12px 6px 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #d9e8ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.header-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(216, 233, 255, 0.8);
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.profile-pill:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.18);
+}
+
 .container {
     width: min(1120px, 94%);
     margin: 20px auto 28px;
@@ -228,6 +255,12 @@ section > form {
     background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
     background-size: 6px 6px, 6px 6px;
     background-repeat: no-repeat;
+}
+
+.field-group input::placeholder,
+.country-select::placeholder {
+    color: var(--text-soft);
+    opacity: 1;
 }
 
 .field-group input:focus,

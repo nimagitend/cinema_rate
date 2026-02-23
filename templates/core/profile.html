@@ -14,7 +14,7 @@
                     {% for error in avatar_form.avatar.errors %}<small class="error">{{ error }}</small>{% endfor %}
                 </div>
                 <button type="submit" name="upload_avatar">Upload Photo</button>
-                <button type="submit" name="delete_avatar" class="delete-btn">Delete Photo</button>
+                <button type="submit" name="delete_avatar" class="delete-btn" aria-label="Delete profile photo"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
             </form>
         </div>
     </article>

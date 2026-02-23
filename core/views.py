@@ -220,13 +220,13 @@ def home_view(request: HttpRequest) -> HttpResponse:
         if personal_movie_table_exists:
             movie_queryset = PersonalMovie.objects.filter(user=request.user).select_related('country')
             if movie_country:
-                movie_queryset = movie_queryset.filter(country__name__iexact=movie_country)
+                movie_queryset = movie_queryset.filter(country__name__icontains=movie_country)
             movies = list(movie_queryset)
         
         if personal_actor_table_exists:
             actor_queryset = PersonalActor.objects.filter(user=request.user).select_related('country')
             if actor_country:
-                actor_queryset = actor_queryset.filter(country__name__iexact=actor_country)
+                movie_queryset = movie_queryset.filter(country__name__icontains=movie_country)
             actors = list(actor_queryset)
 
     except (ProgrammingError, OperationalError):

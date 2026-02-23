@@ -76,7 +76,7 @@
         <h3>Movie Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="actor_country" value="{{ actor_country }}">
-            <input type="text" name="movie_country" class="country-select" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off">
+            <input type="text" name="movie_country" class="country-select" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off" list="country-options">
             <button type="submit">Apply Movie Filter</button>
         </form>
     </article>
@@ -85,11 +85,17 @@
         <h3>Actor Country Filter</h3>
         <form method="get" class="stack-form">
             <input type="hidden" name="movie_country" value="{{ movie_country }}">
-            <input type="text" name="actor_country" class="country-select" placeholder="Type country name" value="{{ actor_country }}" autocomplete="off">
+            <input type="text" name="movie_country" class="country-select" placeholder="Type country name" value="{{ movie_country }}" autocomplete="off" list="country-options">
             <button type="submit">Apply Actor Filter</button>
         </form>
     </article>
 </section>
+
+<datalist id="country-options">
+    {% for country in countries %}
+        <option value="{{ country.name }}">
+    {% endfor %}
+</datalist>
 
 <section class="rankings">
     <div>

@@ -100,17 +100,16 @@ class ProfilePasswordForm(PasswordChangeForm):
 
 
 class PersonalMovieForm(forms.ModelForm):
-    country = forms.CharField(required=False)
+    country = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}))
 
     class Meta:
         model = PersonalMovie
         fields = ['title', 'production_year', 'country', 'poster_image', 'score']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Full movie title'}),
-            'production_year': forms.NumberInput(attrs={'placeholder': 'Production year'}),
-            'country': forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}),
+            'production_year': forms.TextInput(attrs={'placeholder': 'Production year (Gregorian)', 'inputmode': 'numeric', 'pattern': '[0-9]*'}),
             'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
-            'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
+            'score': forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': '0 - 100'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -134,7 +133,7 @@ class PersonalMovieForm(forms.ModelForm):
 
 class PersonalActorForm(forms.ModelForm):
     full_name = forms.CharField(max_length=200, required=False, widget=forms.TextInput(attrs={'placeholder': 'Full name'}))
-    born = forms.IntegerField(min_value=1900, required=False, widget=forms.NumberInput(attrs={'placeholder': 'Birth year (Gregorian)'}))
+    born = forms.IntegerField(min_value=1900, required=False, widget=forms.TextInput(attrs={'placeholder': 'Birth year (Gregorian)', 'inputmode': 'numeric', 'pattern': '[0-9]*'}))
     country = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'country-select', 'autocomplete': 'off', 'placeholder': 'Type country name'}))
     class Meta:
         model = PersonalActor
@@ -142,7 +141,7 @@ class PersonalActorForm(forms.ModelForm):
         labels = {'born': 'Born'}
         widgets = {
             'poster_image': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg'}),
-            'score': forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100', 'placeholder': '0 - 100'}),
+            'score': forms.TextInput(attrs={'inputmode': 'decimal', 'placeholder': '0 - 100'}),
         }
 
     def __init__(self, *args, **kwargs):
