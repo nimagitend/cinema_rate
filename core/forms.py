@@ -6,8 +6,7 @@ from django.core.validators import RegexValidator
 import string
 from datetime import date
 from decimal import Decimal
-
-from .models import Country, PersonalActor, PersonalMovie, UserProfile
+from .models import Country, PersonalActor, PersonalMovie
 
 User = get_user_model()
 
@@ -74,9 +73,10 @@ class LoginForm(AuthenticationForm):
 class ProfileInfoForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ('first_name', 'email')
+        fields = ('first_name', 'last_name', 'email')
         widgets = {
-            'first_name': forms.TextInput(attrs={'placeholder': 'Your name'}),
+            'first_name': forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name': forms.TextInput(attrs={'placeholder': 'Last name'}),
             'email': forms.EmailInput(attrs={'placeholder': 'Your email', 'autocomplete': 'email'}),
         }
 
@@ -85,15 +85,6 @@ class ProfileInfoForm(forms.ModelForm):
         if User.objects.filter(email__iexact=email).exclude(pk=self.instance.pk).exists():
             raise forms.ValidationError('This email is already registered.')
         return email
-
-
-class ProfileAvatarForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ('avatar',)
-        widgets = {
-            'avatar': forms.ClearableFileInput(attrs={'accept': '.png,.jpg,.jpeg,.webp'})
-        }
 
 class ProfilePasswordForm(PasswordChangeForm):
     pass

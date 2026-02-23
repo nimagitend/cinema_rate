@@ -22,12 +22,11 @@
 </div>
 <header class="site-header">
     <div class="brand-area">
-        <a class="brand brand-box" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
+        <a class="brand" href="{% if user.is_authenticated %}{% url 'home' %}{% else %}{% url 'login' %}{% endif %}">Cinema Rate</a>
     </div>
     <div class="right-area">
         {% if user.is_authenticated %}
             <a class="profile profile-pill" href="{% url 'profile' %}">
-                <img src="{{ header_avatar_url }}" alt="{{ header_display_name }} avatar" class="header-avatar">
                 <span>{{ header_display_name }}</span>
             </a>
             {% if user.is_staff %}

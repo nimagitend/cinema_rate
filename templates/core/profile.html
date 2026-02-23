@@ -1,23 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
 {% block content %}
 <section class="entry-grid">
-    <article class="entry-card">
-        <h2>Profile Photo</h2>
-        <div class="profile-quick">
-            <img src="{% if profile.avatar %}{{ profile.avatar.url }}{% else %}{% static 'images/default-avatar.svg' %}{% endif %}" alt="Profile avatar" class="avatar-lg">
-            <form method="post" enctype="multipart/form-data" class="auth-form">
-                {% csrf_token %}
-                <div class="field-group">
-                    <label for="{{ avatar_form.avatar.id_for_label }}">Avatar</label>
-                    {{ avatar_form.avatar }}
-                    {% for error in avatar_form.avatar.errors %}<small class="error">{{ error }}</small>{% endfor %}
-                </div>
-                <button type="submit" name="upload_avatar">Upload Photo</button>
-                <button type="submit" name="delete_avatar" class="delete-btn" aria-label="Delete profile photo"><i class="fa-solid fa-trash-can" aria-hidden="true"></i></button>
-            </form>
-        </div>
-    </article>
 
     <article class="entry-card">
         <h2>Edit Profile</h2>
@@ -30,7 +13,7 @@
                     {% for error in field.errors %}<small class="error">{{ error }}</small>{% endfor %}
                 </div>
             {% endfor %}
-            <button type="submit" name="save_profile_info">Save Info</button>
+            <button type="submit" name="save_profile_info">Save Profile</button>
         </form>
     </article>
 </section>
